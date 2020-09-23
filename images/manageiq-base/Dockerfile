@@ -26,6 +26,11 @@ ARG LOCAL_RPM
 ARG RELEASE_BUILD
 ARG RPM_PREFIX=manageiq
 
+ARG CENTOS_VERSION=8.2.2004
+ARG CENTOS_VERSION_RELEASE=8.2-2.2004.0.2
+ARG NODEJS_VERSION=12
+ARG RUBY_VERSION=2.6
+
 ENV TERM=xterm \
     CONTAINER=true \
     APP_ROOT=/var/www/miq/vmdb
@@ -45,13 +50,13 @@ COPY container-assets/create_local_yum_repo.sh /
 RUN curl -L https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo > /etc/yum.repos.d/ansible-runner.repo
 
 RUN dnf -y --disableplugin=subscription-manager install \
-      http://mirror.centos.org/centos/8.2.2004/BaseOS/${ARCH}/os/Packages/centos-repos-8.2-2.2004.0.1.el8.${ARCH}.rpm \
-      http://mirror.centos.org/centos/8.2.2004/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8.2-2.2004.0.1.el8.noarch.rpm \
+      http://mirror.centos.org/centos/${CENTOS_VERSION}/BaseOS/${ARCH}/os/Packages/centos-repos-${CENTOS_VERSION_RELEASE}.el8.${ARCH}.rpm \
+      http://mirror.centos.org/centos/${CENTOS_VERSION}/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-${CENTOS_VERSION_RELEASE}.el8.noarch.rpm \
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
       https://rpm.manageiq.org/release/11-kasparov/el8/noarch/manageiq-release-11.0-1.el8.noarch.rpm \
       https://resources.ovirt.org/pub/yum-repo/ovirt-release44.rpm && \
-    dnf -y --disableplugin=subscription-manager module enable nodejs:12 && \
-    dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
+    dnf -y --disableplugin=subscription-manager module enable nodejs:${NODEJS_VERSION} && \
+    dnf -y --disableplugin=subscription-manager module enable ruby:${RUBY_VERSION} && \
     if [[ "$RELEASE_BUILD" != "true" ]]; then dnf config-manager --enable manageiq-11-kasparov-nightly; fi && \
     dnf config-manager --setopt=ubi-8-appstream.exclude=*net-snmp* --setopt=ubi-8-baseos.exclude=*net-snmp* --setopt=ubi-8-codeready-builder.exclude=*net-snmp* --save && \
     if [[ "$LOCAL_RPM" = "true" ]]; then /create_local_yum_repo.sh; fi && \
